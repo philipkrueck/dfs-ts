@@ -18,7 +18,7 @@ const dfsService = grcpObject.dfsService
 const main = () => {
   const server = getServer()
   server.bindAsync(
-    `0.0.0.0:${PORT}`,
+    `localhost:${PORT}`,
     grpc.ServerCredentials.createInsecure(),
     (err, port) => {
       if (err) {
