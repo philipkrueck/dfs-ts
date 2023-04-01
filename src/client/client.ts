@@ -1,4 +1,6 @@
+import { cleanPath, exitHandler } from '../shared/utils'
 import { DFSClient } from './dfs-client'
+import fs from 'fs'
 
 interface Options {
   address: string
@@ -20,6 +22,12 @@ const main = async () => {
     return
   }
 
+  if (options.mountPath === '') options.mountPath = 'mnt/client/'
+  options.mountPath = cleanPath(`${process.cwd()}/${options.mountPath}`)
+
+  if (!directoryExists(options.mountPath))
+    throw new Error(`Mount path does not exist: ${options.mountPath}`)
+
   // use client
   const dfsClient = new DFSClient(
     options.address,
@@ -27,6 +35,15 @@ const main = async () => {
     options.mountPath
   )
   dfsClient.processCommand(command, filename)
+}
+
+const directoryExists = (path: string): boolean => {
+  try {
+    const stat = fs.statSync(path)
+    return stat.isDirectory()
+  } catch (err) {
+    return false
+  }
 }
 
 export const parseOptions = (argv: string[]): Options => {
@@ -38,6 +55,7 @@ export const parseOptions = (argv: string[]): Options => {
   }
 
   let i = 0
+
   while (i < argv.length) {
     switch (argv[i]) {
       case '-a':
@@ -111,4 +129,6 @@ const logUsage = () => {
   console.log(usage)
 }
 
+process.on('SIGINT', () => exitHandler('SIGINT'))
+process.on('SIGTERM', () => exitHandler('SIGTERM'))
 main()
